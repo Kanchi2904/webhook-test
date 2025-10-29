@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-ALERT_ID = "11def244-307b-4dc9-9b38-85f153d21451_2"
+BASE_ALERT_ID = "11def244-307b-4dc9-9b38-85f153d21451"
 
 # === Main Webhook Endpoint ===
 @app.route('/webhook/echo', methods=['POST', 'OPTIONS'])
@@ -31,6 +31,11 @@ def handle_alert_id():
         response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return response, 200
+
+    parts = alert_id.split('_')
+    if len(parts) == 2 and parts[0] == BASE_ALERT_ID:
+        print(f"Received alert ID with version: {alert_id}")
+        return jsonify({"error": "Invalid alert ID"}), 404
 
     # Handle POST request for the specific alert_id
     return jsonify({"error": "Invalid alert ID"}), 404
