@@ -2,10 +2,6 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Base alert ID prefix (without version)
-ALERT_ID_PREFIX = "11def244-307b-4dc9-9b38-85f153d21451"
-
-
 # ---------- GLOBAL CORS HANDLER ----------
 @app.after_request
 def after_request(response):
@@ -15,31 +11,22 @@ def after_request(response):
     return response
 
 
-# ---------- ROUTE 1: Root health check ----------
-@app.route('/', methods=['GET', 'OPTIONS'])
+# ---------- ROUTE 1: Root webhook handler ----------
+@app.route('/', methods=['POST', 'OPTIONS'])
 def root():
     if request.method == 'OPTIONS':
-        return '', 200
-    return jsonify({"message": "Webhook service is running"}), 200
+        return '', 200  # CORS preflight accepted
 
-
-# ---------- ROUTE 2: Handle incoming alert_id ----------
-@app.route('/<alert_id>', methods=['POST', 'OPTIONS'])
-def handle_alert_id(alert_id):
-    # Handle CORS preflight (OPTIONS)
-    if request.method == 'OPTIONS':
-        return jsonify({'message': 'CORS preflight accepted'}), 200
-
-    # Check if the alert_id starts with your known prefix
-    if alert_id.startswith(ALERT_ID_PREFIX):
-        # If it matches the blocked alert prefix → send 404
-        print(f"Blocked alert_id received: {alert_id}")
-        return jsonify({"error": "Invalid URL"}), 404
-
-    # Otherwise, treat it as a valid webhook POST
     data = request.get_json(silent=True)
-    print(f"Received valid alert_id: {alert_id}, data: {data}")
-    return jsonify({"message": "Valid alert received", "alert_id": alert_id}), 200
+    print(f"Received POST at root: {data}")
+    return jsonify({"message": "Webhook received successfully"}), 200
 
 
-# Render automatically uses gunicorn, so no need for app.run()
+# ---------- CATCH-ALL: Return 404 for anything else ----------
+@app.route('/<path:subpath>', methods=['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'])
+def catch_all(subpath):
+    print(f"Invalid path accessed: /{subpath}")
+    return jsonify({"error": "Not Found"}), 404
+
+
+# Render automatically uses gunicorn on Render
