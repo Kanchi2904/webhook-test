@@ -22,7 +22,7 @@ def echo():
 
 
 # === Alert ID Endpoint ===
-@app.route(f'/webhook/echo/{ALERT_ID}', methods=['POST', 'OPTIONS'])
+@app.route(f'/webhook/echo/<alert_id>', methods=['POST', 'OPTIONS'])
 def handle_alert_id():
     # Handle OPTIONS (preflight) request
     if request.method == 'OPTIONS':
@@ -34,11 +34,11 @@ def handle_alert_id():
 
     parts = alert_id.split('_')
     if len(parts) == 2 and parts[0] == BASE_ALERT_ID:
-        print(f"Received alert ID with version: {alert_id}")
-        return jsonify({"error": "Invalid alert ID"}), 404
+        print(f"Received with alert id: {alert_id}")
+        return jsonify({"error": "Invalid URL"}), 404
 
     # Handle POST request for the specific alert_id
-    return jsonify({"error": "Invalid alert ID"}), 404
+    return jsonify({"error": "Invalid URL"}), 404
 
 
 # Render automatically runs gunicorn for Flask apps, so no need for app.run()
